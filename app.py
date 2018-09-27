@@ -1,6 +1,7 @@
 from flask import Flask, session, request, url_for, redirect, flash, render_template
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
+import decimal
 
 from models import db, User, Transaction
 from forms import SignupForm, LoginForm, BuyForm
@@ -64,7 +65,6 @@ def register():
 	if 'user' in session:
 		return redirect(url_for('portfolio'))
 
-	print(request.form)
 	form = SignupForm()
 	if request.method == 'POST':
 		if form.validate_on_submit():
@@ -94,7 +94,7 @@ def register():
 	return render_template('register.html', form=form, title='Register')
 
 # TODO
-@app.route('/portfolio')
+@app.route('/portfolio', methods=['GET', 'POST'])
 def portfolio():
 	if 'user' not in session:
 		return redirect(url_for('login'))
@@ -102,15 +102,36 @@ def portfolio():
 	balance = '%.2f'%(user.money)
 	form = BuyForm()
 	if request.method == 'POST':
-		new_transaction = Transaction()
+		if form.validate_on_submit():
+			symbol = form.ticker.data
+			quantity = form.quantity.data
+			symbol_price = iex.get_symbol_price(symbol)
+			# Check if symbol exists
+			if not symbol_price:
+				flash('Symbol does not exist')
+				return redirect(url_for('portfolio'))
+			total_price = quantity * symbol_price
+			if total_price <= decimal.Decimal(user.money):
+				new_transaction = Transaction(user_id=session['user'], symbol=symbol, quantity=quantity, price=total_price)
+				user.money -= decimal.Decimal(total_price)
+
+				db.session.add(new_transaction)
+				db.session.commit()
+				flash('Buy order created')
+			else:
+				flash('Not enough money')
+			return redirect(url_for('portfolio'))
+		flash(form.errors)
+
 	symbol_count = {}
 	transactions = Transaction.query.filter_by(user_id=session['user']).all()
 	for transaction in transactions:
-		symbol_count[transaction['symbol']] = symbol_count.get(transaction['symbol'], 0) + transaction['quantity']
+		print(dir(transaction))
+		symbol_count[transaction.symbol.upper()] = symbol_count.get(transaction.symbol.upper(), 0) + transaction.quantity
 
-	stocks = [{'symbol': symbol, 'count': symbol_count[symbol], 'value': get_symbol_price(symbol)*symbol_count[symbol]}
+	stocks = [{'symbol': symbol, 'count': symbol_count[symbol], 'value': iex.get_symbol_price(symbol) * symbol_count[symbol]}
 	for symbol in symbol_count]
-	value = sum(stock['value'] for stock in stocks)
+	value = '%.2f'%(sum(stock['value'] for stock in stocks))
 	return render_template('portfolio.html', balance=balance, value=value, stocks=stocks, form=form, title='Portfolio')
 
 # TODO
