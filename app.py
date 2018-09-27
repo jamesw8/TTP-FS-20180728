@@ -96,6 +96,9 @@ def register():
 # TODO
 @app.route('/portfolio', methods=['GET', 'POST'])
 def portfolio():
+	"""
+	View user stock portfolio and make buy orders
+	"""
 	if 'user' not in session:
 		return redirect(url_for('login'))
 	user = User.query.filter_by(id=session['user']).first()
@@ -112,12 +115,12 @@ def portfolio():
 				return redirect(url_for('portfolio'))
 			total_price = quantity * symbol_price
 			if total_price <= decimal.Decimal(user.money):
-				new_transaction = Transaction(user_id=session['user'], symbol=symbol, quantity=quantity, price=total_price)
+				new_transaction = Transaction(user_id=session['user'], symbol=symbol.upper(), quantity=quantity, price=symbol_price, buy_transaction=True)
 				user.money -= decimal.Decimal(total_price)
 
 				db.session.add(new_transaction)
 				db.session.commit()
-				flash('Buy order created')
+				flash('Successfully bought {} shares of {} at {}'.format(quantity, symbol.upper(), symbol_price))
 			else:
 				flash('Not enough money')
 			return redirect(url_for('portfolio'))
@@ -139,8 +142,8 @@ def portfolio():
 def transactions():
 	if 'user' not in session:
 		return redirect(url_for('login'))
-
-	return 'Trading page'
+	transactions = Transaction.query.filter_by(user_id=session['user']).order_by(Transaction.transaction_date.desc()).all()
+	return render_template('transactions.html', transactions=transactions, title='Transactions')
 
 if __name__ == '__main__':
 	app.run(debug=True, host='0.0.0.0', port=5000)
