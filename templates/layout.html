@@ -34,7 +34,11 @@
 				{% for message in messages %}
 					<div class="container">
 						<div class="row">
+							{% if 'Success' in message %}
+							<div class="card green darken-2">
+							{% else %}
 							<div class="card red darken-2">
+							{% endif %}
 								<div class="card-content white-text">
 								<p>{{ message }}</p>
 								</div>
