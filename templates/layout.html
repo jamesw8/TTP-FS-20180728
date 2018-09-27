@@ -14,7 +14,7 @@
 		<div class="navbar-fixed">
 			<nav>
 				<div class="nav-wrapper blue darken-1">
-					<a style="margin-left: 10px" href="#" class="brand-logo">myPortfolio</a>
+					<a style="margin-left: 10px" href="{{ url_for('index') }}" class="brand-logo">myPortfolio</a>
 					<ul id="nav-mobile" class="right hide-on-med-and-down">
 						<!-- Need to add session checks -->
 						{% if 'user' in session %}

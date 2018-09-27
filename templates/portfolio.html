@@ -4,8 +4,8 @@
 		<h2>Portfolio (${{ value }})</h2>
 		<div class="row">
 			<div class="col s12">
-				<div class="card col s7 blue lighten-2">
-					<div class="card-content white-text">
+				<div class="card col s7 grey lighten-5">
+					<div class="card-content">
 						<table class="highlight flow-text">
 							<thead>
 						  		<tr>
@@ -16,7 +16,13 @@
 							</thead>
 							<tbody>
 								{% for stock in stocks %}
-								<tr>
+									{% if stock['change_sign'] == 1 %}
+										<tr class="green-text text-lighten-2">
+									{% elif stock['change_sign'] == -1 %}
+										<tr class="red-text text-lighten-2">
+									{% else %}
+										<tr class="grey-text text-lighten-1">
+									{% endif %}
 									<td>{{ stock['symbol'] }}</td>
 									<td>{{ stock['count'] }}</td>
 									<td class="right-align">{{ "$%.2f"|format(stock['value']) }}</td>

@@ -2,14 +2,17 @@ from flask import Flask, session, request, url_for, redirect, flash, render_temp
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 import decimal
+from os import environ
 
 from models import db, User, Transaction
 from forms import SignupForm, LoginForm, BuyForm
 
 import iex
 
+# Create Flask application
 app = Flask(__name__)
 app.secret_key = 'sekrit'
+# Set SQLite DB and create if not existing
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 db.init_app(app)
 with app.app_context():
@@ -32,14 +35,13 @@ def login():
 
 	form = LoginForm()
 	if request.method == 'POST':
-		print(form.validate())
-		print(form.errors)
 		if form.validate_on_submit():
 			email = form.email.data
 			password = form.password.data
+			# Check if there is an email match in db
 			user = User.query.filter_by(email=email).first()
-			print('Trying')
 			if user != None:
+				# Check password if email exists
 				if user.check_password(password):
 					session['user'] = user.id
 					return redirect(url_for('portfolio'))	
@@ -59,8 +61,8 @@ def logout():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
 	"""
+	Create a new account with a unique email
 	User's cash account is $5000.00 USD by default
-	One account per email
 	"""
 	if 'user' in session:
 		return redirect(url_for('portfolio'))
@@ -78,6 +80,7 @@ def register():
 				db.session.add(new_user)
 				db.session.flush()
 			except IntegrityError:
+				# Rollback if duplicate
 				db.session.rollback()
 				flash('Email is already in use.')
 				return render_template('register.html', form=form, title='Register')
@@ -85,15 +88,15 @@ def register():
 				db.session.commit()
 
 			user = User.query.filter_by(email=email).first()
+			# Store user id in session
 			session['user'] = user.id
-			app.logger.info('Successful signup')
 			return redirect(url_for('portfolio'))
 		else:
+			# Flash errors in form validation
 			if 'password' in form.errors:
 				flash('Passwords must match.')
 	return render_template('register.html', form=form, title='Register')
 
-# TODO
 @app.route('/portfolio', methods=['GET', 'POST'])
 def portfolio():
 	"""
@@ -101,9 +104,12 @@ def portfolio():
 	"""
 	if 'user' not in session:
 		return redirect(url_for('login'))
+	# Fetch user information from db
 	user = User.query.filter_by(id=session['user']).first()
 	balance = '%.2f'%(user.money)
+	
 	form = BuyForm()
+
 	if request.method == 'POST':
 		if form.validate_on_submit():
 			symbol = form.ticker.data
@@ -113,37 +119,47 @@ def portfolio():
 			if not symbol_price:
 				flash('Symbol does not exist')
 				return redirect(url_for('portfolio'))
+			# Check if user has enough funds to purchase
 			total_price = quantity * symbol_price
 			if total_price <= decimal.Decimal(user.money):
 				new_transaction = Transaction(user_id=session['user'], symbol=symbol.upper(), quantity=quantity, price=symbol_price, buy_transaction=True)
 				user.money -= decimal.Decimal(total_price)
-
 				db.session.add(new_transaction)
 				db.session.commit()
 				flash('Successfully bought {} shares of {} at {}'.format(quantity, symbol.upper(), symbol_price))
 			else:
 				flash('Not enough money')
 			return redirect(url_for('portfolio'))
-		flash(form.errors)
 
+	# Gather portfolio information from transactions
 	symbol_count = {}
 	transactions = Transaction.query.filter_by(user_id=session['user']).all()
 	for transaction in transactions:
-		print(dir(transaction))
 		symbol_count[transaction.symbol.upper()] = symbol_count.get(transaction.symbol.upper(), 0) + transaction.quantity
+	stocks = []
+	for symbol in symbol_count:
+		symbol_json = iex.get_symbol(symbol)
+		open_price = symbol_json['open']
+		cur_price = symbol_json['latestPrice']
+		stocks.append({
+			'change_sign': 1 if cur_price > open_price else -1 if cur_price < open_price else 0,
+			'symbol': symbol,
+		 	'count': symbol_count[symbol],
+			'value': cur_price * symbol_count[symbol]
+			})
 
-	stocks = [{'symbol': symbol, 'count': symbol_count[symbol], 'value': iex.get_symbol_price(symbol) * symbol_count[symbol]}
-	for symbol in symbol_count]
 	value = '%.2f'%(sum(stock['value'] for stock in stocks))
 	return render_template('portfolio.html', balance=balance, value=value, stocks=stocks, form=form, title='Portfolio')
 
-# TODO
 @app.route('/transactions', methods=['GET'])
 def transactions():
+	"""
+	View all transactions for the user ordered by date
+	"""
 	if 'user' not in session:
 		return redirect(url_for('login'))
 	transactions = Transaction.query.filter_by(user_id=session['user']).order_by(Transaction.transaction_date.desc()).all()
 	return render_template('transactions.html', transactions=transactions, title='Transactions')
 
 if __name__ == '__main__':
-	app.run(debug=True, host='0.0.0.0', port=5000)
+	app.run(debug=True, host='0.0.0.0', port=environ.get('port', 8000))

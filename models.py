@@ -28,9 +28,6 @@ class User(db.Model):
 	def check_password(self, password):
 		return check_password_hash(self.password, password)
 
-	def buy_order(self, money):
-		pass
-
 class Transaction(db.Model):
 	"""
 	Model to store transaction data for every user
