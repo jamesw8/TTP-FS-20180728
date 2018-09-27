@@ -40,10 +40,11 @@ class Transaction(db.Model):
 	symbol = db.Column(db.String(10), nullable=False)
 	quantity = db.Column(db.Integer, nullable=False)
 	price = db.Column(db.DECIMAL, nullable=False)
-	date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-
-	def __init__(self, user_id, symbol, quantity, price):
+	transaction_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+	buy_transaction = db.Column(db.Boolean, nullable=False)
+	def __init__(self, user_id, symbol, quantity, price, buy_transaction):
 		self.user_id = user_id
 		self.symbol = symbol
 		self.quantity = quantity
 		self.price = price
+		self.buy_transaction = buy_transaction
