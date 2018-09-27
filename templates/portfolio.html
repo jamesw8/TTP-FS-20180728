@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+{% block body_content %}
+	<div class="container">
+		<h2>Portfolio (${{ worth }})</h2>
+		<div class="row">
+			<div class="col s12">
+				<div class="card col s6 blue lighten-2">
+					<div class="card-content white-text">
+						<table class="highlight">
+							<thead>
+						  		<tr>
+							  		<th>Symbol</th>
+							  		<th># of Shares</th>
+									<th class="right-align">Value</th>
+								</tr>
+							</thead>
+							<tbody>
+								{% for stock in stocks %}
+								<tr>
+									<td>{{ stock['symbol'] }}</td>
+									<td>{{ stock['count'] }}</td>
+									<td class="right-align">{{ stock['value'] }}</td>
+							  	</tr>
+							  	{% endfor %}
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<form class="col s3 offset-s2">
+					<h4>Cash - ${{ balance }}</h4>
+					{{ form.ticker.label }}
+					{{ form.ticker }}
+					{{ form.quantity.label }}
+					{{ form.quantity(type="number", min=0) }}
+					<input class="waves-effect waves-light btn" type="submit" value="Buy" />
+				</form>
+			</div>
+		</div>
+	</div>
+{% endblock %}
