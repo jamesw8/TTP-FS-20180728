@@ -1,12 +1,12 @@
 {% extends "layout.html" %}
 {% block body_content %}
 	<div class="container">
-		<h2>Portfolio (${{ worth }})</h2>
+		<h2>Portfolio (${{ value }})</h2>
 		<div class="row">
 			<div class="col s12">
-				<div class="card col s6 blue lighten-2">
+				<div class="card col s7 blue lighten-2">
 					<div class="card-content white-text">
-						<table class="highlight">
+						<table class="highlight flow-text">
 							<thead>
 						  		<tr>
 							  		<th>Symbol</th>
@@ -19,14 +19,15 @@
 								<tr>
 									<td>{{ stock['symbol'] }}</td>
 									<td>{{ stock['count'] }}</td>
-									<td class="right-align">{{ stock['value'] }}</td>
+									<td class="right-align">{{ "$%.2f"|format(stock['value']) }}</td>
 							  	</tr>
 							  	{% endfor %}
 							</tbody>
 						</table>
 					</div>
 				</div>
-				<form class="col s3 offset-s2">
+				<form method="post" class="col s3 offset-s1">
+					{{ form.hidden_tag() }}
 					<h4>Cash - ${{ balance }}</h4>
 					{{ form.ticker.label }}
 					{{ form.ticker }}
