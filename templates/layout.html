@@ -19,7 +19,7 @@
 						<!-- Need to add session checks -->
 						{% if 'user' in session %}
 							<li><a href="{{ url_for('portfolio') }}">Portfolio</a></li>
-							<li><a href="{{ url_for('trade') }}">Trade</a></li>
+							<li><a href="{{ url_for('transactions') }}">Transactions</a></li>
 							<li><a href="{{ url_for('logout') }}">Logout</a></li>
 						{% else %}
 							<li><a href="{{ url_for('register') }}">Sign up</a></li>
