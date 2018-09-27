@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{% block body_content %}
+	<div class="container">
+		<h2>Sign up</h2>
+		<div class="row">
+			<form class="col s12" method="post">
+				{{ form.hidden_tag() }}
+				<div class="row">
+					<div class="input-field col center-align s3">
+						{{ form.name.label }}
+						{{ form.name }}
+					</div>
+				</div>
+				<div class="row">
+					<div class="input-field col center-align s3">
+						{{ form.email.label }}
+						{{ form.email(type="email") }}
+					</div>
+					<div class="input-field col center-align s3">
+						{{ form.password.label }}
+						{{ form.password(minlength=8, maxlength=20) }}
+					</div>
+				</div>
+				<a href="{{ url_for('login') }}">Already have an account?</a>
+				<div class="row">
+					<div class="col s6 offset-s6">
+						<input class="waves-effect waves-light btn" type="submit" value="Sign up"/>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+{% endblock %}

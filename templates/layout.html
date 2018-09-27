@@ -1,39 +1,53 @@
  <!DOCTYPE html>
   <html>
-    <head>
+	<head>
 		<!--Import Google Icon Font-->
+		<title>{{ title }}</title>
 		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 		<!-- Compiled and minified CSS -->
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
 
-      	<!--Let browser know website is optimized for mobile-->
-      	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    </head>
-    <body>
-		{% with messages = get_flashed_messages() %}
-			{% if messages %}
-				{% for message in messages %}
-					{{ message }}
-				{% endfor %}
-			{% endif %}
-		{% endwith %}
+		<!--Let browser know website is optimized for mobile-->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	</head>
+	<body>
 		<div class="navbar-fixed">
 			<nav>
-				<div class="nav-wrapper">
-					<a href="#" class="brand-logo">myPortfolio</a>
+				<div class="nav-wrapper blue darken-1">
+					<a style="margin-left: 10px" href="#" class="brand-logo">myPortfolio</a>
 					<ul id="nav-mobile" class="right hide-on-med-and-down">
 						<!-- Need to add session checks -->
-				        <li><a href="{{ url_for('login') }}">Login</a></li>
-				        <li><a href="{{ url_for('trade') }}">Trade</a></li>
-				        <li><a href="{{ url_for('portfolio') }}">Portfolio</a></li>
-		  			</ul>
+						{% if 'user' in session %}
+							<li><a href="{{ url_for('portfolio') }}">Portfolio</a></li>
+							<li><a href="{{ url_for('trade') }}">Trade</a></li>
+							<li><a href="{{ url_for('logout') }}">Logout</a></li>
+						{% else %}
+							<li><a href="{{ url_for('register') }}">Sign up</a></li>
+							<li><a href="{{ url_for('login') }}">Login</a></li>
+						{% endif %}
+					</ul>
 				</div>
 			</nav>
 		</div>
+		{% with messages = get_flashed_messages() %}
+			{% if messages %}
+				{% for message in messages %}
+					<div class="container">
+						<div class="row">
+							<div class="card red darken-2">
+								<div class="card-content white-text">
+								<p>{{ message }}</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				{% endfor %}
+			{% endif %}
+		{% endwith %}
 		{% block body_content %}
 		{% endblock %}
 
-      	 <!-- Compiled and minified JavaScript -->
-    	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-    </body>
+		 <!-- Compiled and minified JavaScript -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+	</body>
   </html>
