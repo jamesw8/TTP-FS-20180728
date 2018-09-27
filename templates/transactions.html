@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+{% block body_content %}
+	<div class="container">
+		<h2>Transactions (${{ value }})</h2>
+		<div class="row">
+			<div class="col s12">
+				<div class="card col s7 blue lighten-2">
+					<div class="card-content white-text">
+						<table class="highlight flow-text">
+							<thead>
+						  		<tr>
+							  		<th>Symbol</th>
+							  		<th># of Shares</th>
+									<th class="right-align">Share Price</th>
+								</tr>
+							</thead>
+							<tbody>
+								{% for transaction in transactions %}
+								<tr>
+									<td>{% if transaction.buy_transaction %}BUY {% else %}SELL {% endif %}({{ transaction.symbol }})</td>
+									<td>{{ transaction.quantity }}</td>
+									<td class="right-align">{{ "$%.2f"|format(transaction.price) }}</td>
+							  	</tr>
+							  	{% endfor %}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}
