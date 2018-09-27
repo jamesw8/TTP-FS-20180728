@@ -2,8 +2,10 @@ from flask import Flask, session, request, url_for, redirect, flash, render_temp
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 
-from models import db, User
-from forms import SignupForm, LoginForm
+from models import db, User, Transaction
+from forms import SignupForm, LoginForm, BuyForm
+
+import iex
 
 app = Flask(__name__)
 app.secret_key = 'sekrit'
@@ -39,7 +41,7 @@ def login():
 			if user != None:
 				if user.check_password(password):
 					session['user'] = user.id
-					return redirect(url_for('trade'))	
+					return redirect(url_for('portfolio'))	
 		flash('Email/Password combination does not exist.')
 	return render_template('login.html', form=form, title='Login')
 
@@ -85,8 +87,10 @@ def register():
 			user = User.query.filter_by(email=email).first()
 			session['user'] = user.id
 			app.logger.info('Successful signup')
-			return redirect(url_for('trade'))
-
+			return redirect(url_for('portfolio'))
+		else:
+			if 'password' in form.errors:
+				flash('Passwords must match.')
 	return render_template('register.html', form=form, title='Register')
 
 # TODO
@@ -94,12 +98,24 @@ def register():
 def portfolio():
 	if 'user' not in session:
 		return redirect(url_for('login'))
+	user = User.query.filter_by(id=session['user']).first()
+	balance = '%.2f'%(user.money)
+	form = BuyForm()
+	if request.method == 'POST':
+		new_transaction = Transaction()
+	symbol_count = {}
+	transactions = Transaction.query.filter_by(user_id=session['user']).all()
+	for transaction in transactions:
+		symbol_count[transaction['symbol']] = symbol_count.get(transaction['symbol'], 0) + transaction['quantity']
 
-	return 'Portfolio'
+	stocks = [{'symbol': symbol, 'count': symbol_count[symbol], 'value': get_symbol_price(symbol)*symbol_count[symbol]}
+	for symbol in symbol_count]
+	value = sum(stock['value'] for stock in stocks)
+	return render_template('portfolio.html', balance=balance, value=value, stocks=stocks, form=form, title='Portfolio')
 
 # TODO
-@app.route('/trade', methods=['GET'])
-def trade():
+@app.route('/transactions', methods=['GET'])
+def transactions():
 	if 'user' not in session:
 		return redirect(url_for('login'))
 
