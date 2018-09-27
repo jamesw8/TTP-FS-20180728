@@ -1,0 +1,39 @@
+ <!DOCTYPE html>
+  <html>
+    <head>
+		<!--Import Google Icon Font-->
+		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+		<!-- Compiled and minified CSS -->
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+      	<!--Let browser know website is optimized for mobile-->
+      	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    </head>
+    <body>
+		{% with messages = get_flashed_messages() %}
+			{% if messages %}
+				{% for message in messages %}
+					{{ message }}
+				{% endfor %}
+			{% endif %}
+		{% endwith %}
+		<div class="navbar-fixed">
+			<nav>
+				<div class="nav-wrapper">
+					<a href="#" class="brand-logo">myPortfolio</a>
+					<ul id="nav-mobile" class="right hide-on-med-and-down">
+						<!-- Need to add session checks -->
+				        <li><a href="{{ url_for('login') }}">Login</a></li>
+				        <li><a href="{{ url_for('trade') }}">Trade</a></li>
+				        <li><a href="{{ url_for('portfolio') }}">Portfolio</a></li>
+		  			</ul>
+				</div>
+			</nav>
+		</div>
+		{% block body_content %}
+		{% endblock %}
+
+      	 <!-- Compiled and minified JavaScript -->
+    	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    </body>
+  </html>
